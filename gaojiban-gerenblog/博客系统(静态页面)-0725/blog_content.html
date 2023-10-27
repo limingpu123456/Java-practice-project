@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>博客正文</title>
+    <link rel="stylesheet" href="css/conmmon.css?v=1">
+    <link rel="stylesheet" href="css/blog_content.css">
+    <link rel="stylesheet" href="editor.md/css/editormd.preview.min.css" />
+    <script src="js/jquery.min.js"></script>
+    <script src="editor.md/editormd.js"></script>
+    <script src="editor.md/lib/marked.min.js"></script>
+    <script src="editor.md/lib/prettify.min.js"></script>
+</head>
+
+<body>
+    <!-- 导航栏 -->
+    <div class="nav">
+        <img src="img/logo2.jpg" alt="">
+        <span class="title">我的博客系统</span>
+        <!-- 用来占据中间位置 -->
+        <span class="spacer"></span>
+        <a href="blog_list.html">主页</a>
+        <a href="blog_add.html">写博客</a>
+        <a href="login.html">登录</a>
+    </div>
+    <!-- 版心 -->
+    <div class="container">
+        <!-- 左侧个人信息 -->
+        <div class="container-left">
+            <div class="card">
+                <img src="img/avatar.png" class="avtar" alt="">
+                <h3>小可爱</h3>
+                <!-- <a href="http:www.github.com">github 地址</a> -->
+                <div class="counter">
+                    <span>发表总文章数：2</span>
+                </div>
+                <!-- <div class="counter">
+                    <span>2</span>
+                </div> -->
+            </div>
+        </div>
+        <!-- 右侧内容详情 -->
+        <div class="container-right">
+            <div class="blog-content">
+                <!-- 博客标题 -->
+                <h3>我的第一篇博客</h3>
+                <!-- 博客时间 -->
+                <div class="date">2021-06-02 | 访问量：xx</div>
+                <!-- 博客正文 -->
+                <div id="editorDiv">
+                    <h1>123</h1>
+                    <h1>123</h1>
+                    <h1>123</h1>
+                </div>
+                <hr>
+                <div>
+                    <h2 style="text-align: left;margin: 20px 0 20px 0;">评论</h2>
+                    <div id="addcomment">
+                        <div>
+                            <span id="comment_login_name">张三</span>：
+                            <textarea placeholder="此处输入评论内容" style="text-align: left;width: 50%;height: 100px;"></textarea>
+                        </div>   
+                        <input type="button" value="发表评论" class="btn" style="margin-left: 52px;margin-top: 10px;">
+                    </div>
+                    <h3 style="text-align: left;margin-top: 10px;">最新评论</h3>
+                    <div id="commentlist">
+                        <div style="margin-bottom: 26px;">
+                            李四：xxx
+                            <br>
+                            <a href="#">删除</a>
+                        </div>
+                        <div style="margin-bottom: 26px;">
+                            王五：xxx
+                            <br>
+                            <a href="#">删除</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+            var editormd;
+            function initEdit(md){
+                editormd = editormd.markdownToHTML("editorDiv", {
+                markdown : md, // Also, you can dynamic set Markdown text
+                // htmlDecode : true,  // Enable / disable HTML tag encode.
+                // htmlDecode : "style,script,iframe",  // Note: If enabled, you should filter some dangerous HTML tags for website security.
+                });
+            }
+            
+    </script> 
+</body>
+
+</html>

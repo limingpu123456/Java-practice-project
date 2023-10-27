@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>博客编辑</title>
+
+    <!-- 引入自己写的样式 -->
+    <link rel="stylesheet" href="css/conmmon.css">
+    <link rel="stylesheet" href="css/blog_edit.css">
+
+    <!-- 引入 editor.md 的依赖 -->
+    <link rel="stylesheet" href="editor.md/css/editormd.min.css"/>
+    <script src="js/jquery.min.js"></script>
+    <script src="editor.md/editormd.js"></script>
+    <script src="js/urlutil.js"></script>
+</head>
+
+<body>
+<!-- 导航栏 -->
+<div class="nav">
+    <img src="img/logo2.jpg" alt="">
+    <span class="title">我的博客系统</span>
+    <!-- 用来占据中间位置 -->
+    <span class="spacer"></span>
+    <a href="blog_list.html">主页</a>
+    <a href="myblog_list.html">我的文章列表</a>
+    <a href="#">注销</a>
+</div>
+<!-- 编辑框容器 -->
+<div class="blog-edit-container">
+    <!-- 标题编辑区 -->
+    <div class="title">
+        <input id="title" type="text" placeholder="在这里写下文章标题">
+        <button onclick="mysub()">发布文章</button>
+    </div>
+    <!-- 创建编辑器标签 -->
+    <div id="editorDiv">
+        <textarea id="editor-markdown" style="display:none;"></textarea>
+    </div>
+</div>
+
+<script>
+    // 文章id（来自于url里面的参数）
+    var aid = getUrlParam("aid");
+
+    var editor;
+
+    function initEdit(md) {
+        // 编辑器设置
+        editor = editormd("editorDiv", {
+            // 这里的尺寸必须在这里设置. 设置样式会被 editormd 自动覆盖掉.
+            width: "100%",
+            // 高度 100% 意思是和父元素一样高. 要在父元素的基础上去掉标题编辑区的高度
+            height: "calc(100% - 50px)",
+            // 编辑器中的初始内容
+            markdown: md,
+            // 指定 editor.md 依赖的插件路径
+            path: "editor.md/lib/",
+            saveHTMLToTextarea: true //
+        });
+    }
+
+    // initEdit("# 在这里写下一篇博客"); // 初始化编译器的值
+
+    // 先查询数据库中的文章信息进行显示
+    function initPage() {
+        if (aid == null || aid == "") {
+            alert("参数有误！");
+            return false;
+        }
+        // 请求后端查询文章信息
+        jQuery.ajax({
+            url: "/art/getinfobyaid",
+            type: "GET",
+            data: {
+                "aid": aid
+            },
+            success: function (res) {
+                // 得到后端的结果并展示到当前页面
+                if (res.code == 200 && res.data != null && res.data.aid > 0) {
+                    // 查询到了文章信息
+                    jQuery("#title").val(res.data.title);
+                    initEdit(res.data.content);
+                } else {
+                    alert("抱歉：查询失败！" + res.msg);
+                }
+            }
+        });
+    }
+
+    initPage();
+
+    // 提交
+    function mysub() {
+        // alert(editor.getValue()); // 获取值
+        // editor.setValue("#123") // 设置值
+
+        // 1.参数效验
+        var title = jQuery("#title");
+        if (title.val().trim() == "") {
+            alert("请先输入标题！");
+            title.focus();
+            return false;
+        }
+        if (editor.getValue() == "") {
+            alert("请先输入正文！");
+            return false;
+        }
+        // 2.将数据发送给后端【文章标题、文章正文、文章id】
+        jQuery.ajax({
+            url: "/art/update",
+            type: "POST",
+            data: {
+                "aid": aid,
+                "title": title.val(),
+                "content": editor.getValue()
+            },
+            success: function (res) {
+                // 3.将结果展现给用户
+                if (res.code == 200 && res.data == 1) {
+                    alert("恭喜：修改成功！");
+                    location.href = "/myblog_list.html";
+                } else {
+                    alert("抱歉：操作失败，请重试!" + res.msg)
+                }
+            }
+        });
+    }
+</script>
+</body>
+
+</html>

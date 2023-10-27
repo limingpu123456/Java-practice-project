@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.myblog.dao.ArticleInfoMapper">
+    <select id="getDetail" resultType="com.example.myblog.model.vo.ArticleInfoVO">
+        select a.*, u.photo, u.nickname
+        from articleinfo a
+                 left join userinfo u on a.uid = u.uid
+        where aid = #{aid}
+    </select>
+
+    <update id="updateRCount">
+        update articleinfo
+        set rcount=rcount + 1
+        where aid = #{aid}
+    </update>
+
+</mapper>

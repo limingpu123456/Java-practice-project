@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.gerenblog.mapper.ArticleMapper">
+
+    <select id="getMyList" resultType="com.example.gerenblog.model.ArticleInfo">
+        select * from articleinfo where uid=#{uid};
+    </select>
+    <select id="getDetail" resultType="com.example.gerenblog.model.ArticleInfo">
+        select * from articleinfo where id=#{aid};
+    </select>
+    <select id="getList" resultType="com.example.gerenblog.model.ArticleInfo">
+        select * from articleinfo limit #{psize} offset #{offset}
+    </select>
+    <select id="getTotalCount" resultType="java.lang.Integer">
+        select count(*) from articleinfo
+    </select>
+
+    <update id="update">
+        update articleinfo set title=#{title},content=#{content} where id=#{aid} and uid=#{uid}
+    </update>
+
+</mapper>

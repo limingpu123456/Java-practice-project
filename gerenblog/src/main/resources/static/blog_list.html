@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>博客列表</title>
+    <link rel="stylesheet" href="css/list.css">
+    <link rel="stylesheet" href="css/blog_list.css">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/tools.js"></script>
+    <style>
+        
+        .nav{
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+        }
+        .container{
+            padding-top: 80px;
+            height: auto;
+        }
+        .container-right{
+            width: auto;
+        }
+        .blog-pagnation-wrapper{
+            height: 40px;
+            margin: 16px 0;
+            text-align: center;
+        }
+        .blog-pagnation-item{
+            display: inline-block;
+            padding: 8px;
+            border: 1px solid #d0d0d5;
+            color: #333;
+        }
+        .blog-pagnation-item:hover{
+            background: #4e4eeb;
+            color: #fff;
+        }
+        .blog-pagnation-item.actvie{
+            background: #4e4eeb;
+            color: #fff;
+        }
+
+    </style>
+</head>
+
+<body>
+    <!-- 导航栏 -->
+    <div class="nav">
+        <img src="img/logo2.jpg" alt="">
+        <span class="title">我的博客系统</span>
+        <!-- 用来占据中间位置 -->
+        <span class="spacer"></span>
+        <a href="blog_list.html">主页</a>
+        <a href="blog_edit.html">写博客</a>
+        <a href="login.html">登陆</a>
+        <!-- <a href="#">注销</a> -->
+    </div>
+    <!-- 版心 -->
+    <div class="container">
+        <!-- 右侧内容详情 -->
+        <div class="container-right" style="width:100%">
+            <div id="listDiv">
+                <!-- 每一篇博客包含标题, 摘要, 时间 -->
+                <div class="blog">
+                    <div class="title">我的第一篇博客</div>
+                    <div class="date">2021-06-02</div>
+                    <div class="desc"></div>
+                    <a href="blog_content.html?id=1" class="detail">查看全文</a>
+                </div>
+            </div>
+
+
+            <hr>
+            <div class="blog-pagnation-wrapper">
+                <button class="blog-pagnation-item" onclick="firstCli()">首页</button>
+                <button class="blog-pagnation-item" onclick="bClick()">上一页</button>
+                <button class="blog-pagnation-item" onclick="nClick()">下一页</button>
+                <button class="blog-pagnation-item" onclick="lastCli()">末页</button>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+    var pindex = 1; // 当前的页码
+    var psize = 2; //每页显示多少条
+    var totalpage = 1;
+    //初始化分页参数，尝试从url中获取pindex 和 psize
+    function initPageParam(){
+       var pi = getURLParam("pindex")
+        if(pi != ""){
+            pindex = pi
+        }
+        var pz = getURLParam("psize")
+        if(pz != ""){
+            psize = pz
+        }
+    }
+    initPageParam()
+
+    function getTotalPage(){
+        jQuery.ajax({
+            url:'/art/totalpage',
+            type:"GET",
+            data:{
+                "psize" : psize
+            },
+            success:function(result){
+                if(result.code == 200 && result.data != null){
+                    totalpage = result.data;
+                }
+            }
+        })
+    }
+    getTotalPage();
+
+    function getList(){
+        jQuery.ajax({
+            url:'/art/list',
+            type:"GET",
+            data:{
+                "pindex" : pindex,
+                "psize" : psize
+            },
+            success:function(result){
+                if(result.code == 200 && result.data != null && result.data.length > 0){
+                    //循环拼接数据到DOM树上
+                    var finalHtml = "";
+                    for(var i = 0 ; i < result.data.length;i++){
+                        var item = result.data[i];
+                        finalHtml+='<div class="blog">';
+                        finalHtml+='<div class="title">'+item.title+'</div>';
+                        finalHtml+='<div class="date">'+item.createtime+'</div>';
+                        finalHtml+='<div class="desc">'+item.content+'</div>';
+                        finalHtml+='<a href="blog_content.html?id='+item.id+'" class="detail">查看全文</a>';
+                        finalHtml+='</div>';
+                    }
+                    jQuery("#listDiv").html(finalHtml)
+                }
+
+            }
+        })
+    }
+    //查询分页数据
+    getList();
+
+    function firstCli(){
+        location.href = "blog_list.html";
+    }
+
+    function bClick(){
+        if(pindex <= 1){
+            alert("抱歉，已经是最前面了")
+            return false
+        }
+        pindex = parseInt(pindex) - 1;
+        location.href = "blog_list.html?pindex=" + pindex + "&psize=" +psize;
+    }
+
+    function nClick(){
+        pindex = parseInt(pindex) + 1;
+        if(pindex > totalpage){
+            //已经在最后一页了
+            alert('已经是最后一页了')
+            return false;
+        }
+        location.href = "blog_list.html?pindex=" + pindex + "&psize=" +psize;
+    }
+
+    function lastCli(){
+        pindex = totalpage
+        location.href = "blog_list.html?pindex=" + pindex + "&psize=" +psize;
+    }
+
+</script>
+</html>

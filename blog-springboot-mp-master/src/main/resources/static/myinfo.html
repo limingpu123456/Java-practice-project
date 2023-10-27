@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人中心</title>
+    <link rel="stylesheet" href="css/conmmon.css">
+    <link rel="stylesheet" href="css/login.css">
+    <script src="js/jquery.min.js"></script>
+</head>
+
+<body>
+<!-- 导航栏 -->
+<div class="nav">
+    <img src="img/logo2.jpg" alt="">
+    <span class="title">我的博客系统</span>
+    <!-- 用来占据中间位置 -->
+    <span class="spacer"></span>
+    <a href="blog_list.html">主页</a>
+    <a href="myblog_list.html">我的文章列表</a>
+    <a href="#">注销</a>
+</div>
+<!-- 版心 -->
+<div class="login-container">
+    <!-- 中间的注册框 -->
+    <div class="login-dialog" style="height: 460px;">
+
+        <div class="row" style="margin-top: 80px;margin-bottom: 50px;">
+            <img id="photo" src="img/avatar.png"
+                 style="width: 100px;height: 140px;">
+            <input id="file" style="font-size: 12px;width: 120px;" type="file">
+            <button style="width: 80px;height: 50px;" onclick="savePhoto()">保存</button>
+        </div>
+        <div class="row">
+            <span>昵称</span>
+            <input type="text" id="nickname">
+        </div>
+        <div class="row">
+            <span>原密码</span>
+            <input type="password" id="old_password">
+        </div>
+        <div class="row">
+            <span>新密码</span>
+            <input type="password" id="password">
+        </div>
+        <div class="row">
+            <span>确认密码</span>
+            <input type="password" id="password2">
+        </div>
+        <div class="row">
+            <button id="submit" onclick="updateUser()">修 改</button>
+        </div>
+    </div>
+</div>
+<script>
+    // 获取用户头像和昵称
+    function initPage() {
+        jQuery.ajax({
+            url: "/user/getsess",
+            type: "GET",
+            data: {},
+            success: function (res) {
+                if (res.code == 200 && res.data != null && res.data.uid >= 0) {
+                    // 得到当前的登录用户
+                    var userinfo = res.data;
+                    if (null != userinfo.photo && userinfo.photo != "") {
+                        jQuery("#photo").attr("src", userinfo.photo);
+                    }
+                    jQuery("#nickname").val(userinfo.nickname);
+                } else {
+                    alert("抱歉：查询用户信息出错，请刷新页面再试！" + res.msg);
+                }
+            }
+        });
+    }
+
+    initPage();
+
+    // 保存头像
+    function savePhoto() {
+        // 得到图片
+        var photo = jQuery("#file")[0].files[0];
+        if (photo == null) {
+            alert("请先选择要上传的头像！");
+            return false;
+        }
+        // 构建一个 form 表单
+        var formData = new FormData();
+        formData.append("file", photo);
+        jQuery.ajax({
+            url: "/user/save_photo",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                if (res.code == 200 && res.data != null && res.data != "") {
+                    // 图片上传成功
+                    jQuery("#photo").attr("src", res.data);
+                } else {
+                    // 图片上传失败
+                    alert("抱歉：上传图片失败，请重试！" + res.msg);
+                }
+            }
+        });
+    }
+
+    // 修改昵称或修改密码
+    function updateUser() {
+        var isUpdatePassword = false; // 是否修改密码
+        // 1.非空效验
+        var nickname = jQuery("#nickname");
+        var oldPassword = jQuery("#old_password");
+        var password = jQuery("#password");
+        var password2 = jQuery("#password2");
+        if (nickname.val().trim() == "") {
+            alert("请先输入昵称！");
+            nickname.focus();
+            return false;
+        }
+        if (oldPassword.val() != "" ||
+            password.val() != "" || password2.val() != "") {
+            // 需要修改密码
+            isUpdatePassword = true;
+            if (oldPassword.val().trim() == "") {
+                alert("请先输入原密码！");
+                oldPassword.focus();
+                return false;
+            }
+            if (password.val().trim() == "") {
+                alert("请先输入新密码！");
+                password.focus();
+                return false;
+            }
+            if (password2.val().trim() == "") {
+                alert("请先输入确认密码！");
+                password2.focus();
+                return false;
+            }
+            // 判断新密码和确认密码是否一致
+            if (password.val() != password2.val()) {
+                alert("两次输入的新密码不一致，请先确认！");
+                return false;
+            }
+        }
+        // 2.将前端的数据提交给后端
+        jQuery.ajax({
+            url: "/user/update",
+            type: "POST",
+            data: {
+                "nickname": nickname.val(),
+                "oldpassword": oldPassword.val(),
+                "password": password.val(),
+                "isUpdatePassword": isUpdatePassword
+            },
+            success: function (res) {
+                // 3.将返回的结果展现给用户
+                if (res.code == 200 && res.data == 1) {
+                    // 修改成功
+                    if (isUpdatePassword) {
+                        alert("恭喜：修改成功，请重新登录！");
+                        // 修改密码，重新登录
+                        location.href = "login.html";
+                    } else {
+                        alert("恭喜：昵称修改成功！");
+                    }
+                } else {
+                    // 修改失败
+                    alert("抱歉：修改失败，请重试！" + res.msg);
+                }
+            }
+        });
+    }
+
+</script>
+</body>
+
+</html>

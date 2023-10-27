@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <!-- 指定字符集 -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>用户信息管理系统</title>
+    <!-- 1. 导入CSS的全局样式 -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <!-- 2. jQuery导入，建议使用1.9以上的版本 -->
+    <script src="js/jquery-2.1.0.min.js"></script>
+    <!-- 3. 导入bootstrap的js文件 -->
+    <!-- <script src="js/bootstrap.min.js"></script>-->
+    <style type="text/css">
+        td, th {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h3 style="text-align: center;margin-bottom: 50px;">用户信息列表</h3>
+    <div style="float: left;">
+        <form class="form-inline">
+            <div class="form-group">
+                <label for="ipt_name">姓名</label>
+                <input name="name" type="text" class="form-control" id="ipt_name">
+            </div>
+            <div class="form-group">
+                <label for="ipt_address">籍贯</label>
+                <input name="address" type="text" class="form-control" id="ipt_address">
+            </div>
+            <div class="form-group">
+                <label for="ipt_email">邮箱</label>
+                <input name="email" type="email" class="form-control" id="ipt_email">
+            </div>
+            <button id="submit1" type="button" class="btn btn-default" onclick="mysearch()">查询</button>
+        </form>
+    </div>
+    <div style="float: right;margin-bottom: 15px">
+        <a class="btn btn-primary" href="add.html">添加用户</a>
+        <a id="delete" class="btn btn-primary" href="javascript:delByIds()">删除选中</a>
+    </div>
+    <table border="1" class="table table-bordered table-hover">
+        <tr class="success">
+            <th>选择</th>
+            <th>编号</th>
+            <th>姓名</th>
+            <th>性别</th>
+            <th>年龄</th>
+            <th>籍贯</th>
+            <th>QQ</th>
+            <th>邮箱</th>
+            <th>超管</th>
+            <th>操作</th>
+        </tr>
+        <tbody id="info">
+        </tbody>
+    </table>
+    <div>
+        <nav aria-label="Page navigation">
+            <ul id="all" class="pagination">
+                                <li class="active"><a href="javascript:firstPage();">首页</a></li>
+                                <li><a href="javascript:beforePage();">上一页</a></li>
+                                <li><a href="javascript:nextPage();">下一页</a></li>
+                                <li><a href="javascript:lastPage();">末页</a></li>
+                                <span id="pageinfo" style="font-size: 20px;margin-left: 10px;">
+                                  </span>
+            </ul>
+        </nav>
+    </div>
+</div>
+<script>
+
+
+    function mydel(uid){
+        if(confirm("确认删除？")){
+            jQuery.ajax({
+                url:"del",
+                type:"POST",
+                data:{
+                    "uid":uid,
+                },
+                success:function(result){
+                    if(result != null && result.data > 0){
+                        alert("恭喜，删除成功")
+                        location.href = location.href;
+                    }else{
+                        alert("抱歉，删除失败，请您稍后再试试")
+                    }
+                }
+            })
+        }
+    }
+
+    //删除多条用户信息
+    function delByIds(){
+        if(confirm("确认删除？")){
+            var ids = []
+            jQuery("#info").find("tr").each(function(i){
+                if(jQuery(this).find("th:first").find("input").prop("checked") == true){
+                    ids += jQuery(this).find("th:first").find("input").attr("id")+",";
+                }
+            })
+            if(ids!=""){
+                // ids = ids.substr(0,ids.length - 1)
+                // var idsArr = ids.split(",");
+                jQuery.ajax({
+                    url:"delbyids",
+                    type:"POST",
+                    data:{
+                        "ids": ids
+                    },
+                    success:function(result){
+                        if(result != null && result.data > 0){
+                            alert("恭喜，删除成功")
+                            location.href = location.href;
+                        }else{
+                            alert("抱歉，删除失败，请您稍后再试试")
+                        }
+                    }
+                })
+            }
+        };
+    }
+
+    function getParamValue(key){
+        var url = location.search;
+        if(url!=""){
+            url = url.substr(1)
+            var kvs = url.split("&");
+            // kvs.forEach(function(item){
+            //     var kv = item.split("=")
+            //     if(key == kv[0])return kv[1]
+            // })
+            for(var i = 0 ; i<kvs.length; i++){
+                var kv = kvs[i].split("=")
+                if(key == kv[0])return kv[1]
+            }
+        }
+        return ""
+    }
+
+    var username = "";
+    var address = ""
+    var email = ""
+    var totalPage = 3;
+    var totalCount = 0 ;//总条数
+    var pindex = 1; //当前页码
+    var psize = 2; //每页显示条数
+    //获取所有的用户列表
+    function getList(){
+        jQuery.ajax({
+            url:'listbypage',
+            type:'GET',
+            data:{
+                "pindex" : pindex,
+                "psize" : psize,
+                "username" : username,
+                "address" : address,
+                "email" : email
+            },
+            success:function(result){
+                if(result!=null  && result.data!= null){
+                    totalCount = result.data.count;
+                    totalPage = Math.ceil(parseInt(totalCount) / psize)
+                    jQuery("#pageinfo").html("共 "+totalCount+" 条记录，共 "+totalPage+"页")
+                    var listDiv = "";
+                    if(result.data.list.length > 0){
+                    for(var i = 0 ; i < result.data.list.length ; i++){
+                        var userinfo = result.data.list[i]
+                        listDiv += ' <tr>\n' +
+                            '                    <th>\n' +
+                            '                        <input id="'+userinfo.uid+'" type="checkbox">\n' +
+                            '                    </th>\n' +
+                            '                    <th>'+userinfo.uid+'</th>\n' +
+                            '                    <th>'+userinfo.username+'</th>\n' +
+                            '                    <th>'+userinfo.sex+'</th>\n' +
+                            '                    <th>'+userinfo.age+'</th>\n' +
+                            '                    <th>'+userinfo.address+'</th>\n' +
+                            '                    <th>'+userinfo.qq+'</th>\n' +
+                            '                    <th>'+userinfo.email+'</th>\n' +
+                            '                    <th>'+(userinfo.isadmin==true?'是':'否')+'</th>\n' +
+                            '                    <th>\n' +
+                            '                        <a class="btn btn-default btn-sm" href="update.html?uid='+userinfo.uid+'">修改</a>\n' +
+                            '                        <a class="btn btn-default btn-sm" href="javascript:mydel('+userinfo.uid+');">删除</a>\n' +
+                            '                    </th>\n' +
+                            '                </tr>'
+                        }
+                    }
+                    jQuery("#info").html(listDiv)
+                }
+            }
+        })
+    }
+
+    function initPage(){
+        username = getParamValue("username");
+        address = getParamValue("address");
+        email = getParamValue("email");
+        pindex = getParamValue("pindex") || 1;
+        getList()
+    }
+    initPage() //初始化页面
+    //点击首页
+    function firstPage(){
+        location.href="list.html?pindex=1&username=" + username + "&address=" + address + "&email=" + email;
+    }
+    //点击末页
+    function lastPage(){
+        location.href="list.html?pindex="+totalPage+"&username=" + username + "&address=" + address + "&email=" + email;
+    }
+    //上一页
+    function beforePage(){
+        if(pindex > 1 ){
+            pindex = parseInt(pindex) - 1
+            location.href="list.html?pindex="+pindex+"&username=" + username + "&address=" + address + "&email=" + email;
+        }else{
+            alert("已经是首页了")
+        }
+    }
+    //下一页
+    function nextPage(){
+        if(pindex >= totalPage){
+            alert("已经是最后一页了")
+            return false;
+        }
+        pindex = parseInt(pindex) + 1
+        location.href="list.html?pindex="+pindex+"&username=" + username + "&address=" + address + "&email=" + email;
+    }
+
+    //查询按钮
+    function mysearch(){
+        var username_input = jQuery.trim(jQuery("#ipt_name").val())
+        var address_input = jQuery.trim(jQuery("#ipt_address").val())
+        var email_input = jQuery.trim(jQuery("#ipt_email").val())
+        username = username_input
+        address = address_input
+        email = email_input
+        getList()
+    }
+</script>
+</body>
+
+</html>

@@ -1,0 +1,2 @@
+alter table userinfo add unique idx_userinfo_loginname(loginname);
+desc userinfo;
