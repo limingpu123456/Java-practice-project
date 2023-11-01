@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.blog.dao.CommontMapper">
+
+    <select id="getList" resultType="com.example.blog.model.vo.CommentInfoVO">
+        select c.*,u.loginname as nickname
+            from commentinfo c
+            left join userinfo u on c.uid = u.uid
+            where aid = #{aid}
+            order by cid desc
+    </select>
+</mapper>

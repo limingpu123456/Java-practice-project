@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>博客列表</title>
+    <link rel="stylesheet" href="css/conmmon.css">
+    <link rel="stylesheet" href="css/blog_list.css">
+    <script src="js/jquery.min.js"></script>
+</head>
+
+<body>
+<!-- 导航栏 -->
+<div class="nav">
+    <img src="img/logo2.jpg" alt="">
+    <span class="title">我的博客系统</span>
+    <!-- 用来占据中间位置 -->
+    <span class="spacer"></span>
+    <a href="blog_list.html">主页</a>
+    <a href="blog_add.html">写博客</a>
+    <a href="myinfo.html">个人中心</a>
+    <a href="javascript:logout()">注销</a>
+</div>
+<!-- 版心 -->
+<div class="container">
+    <!-- 左侧个人信息 -->
+    <div class="container-left">
+
+    </div>
+    <!-- 右侧内容详情 -->
+    <div id="artlist" class="container-right">
+
+    </div>
+</div>
+<script>
+    // 查询我的所有文章
+    function initPage() {
+        jQuery.ajax({
+            url: "/art/mylist",
+            type: "GET",
+            data: {},
+            success: function (res) {
+                var createHtml = "";
+                if (res.code == 200 && res.data != null && res.data.length > 0) {
+                    // 我已经发表文章了
+                    for (let i = 0; i < res.data.length; i++) {
+                        let art = res.data[i];
+                        createHtml += '<div class="blog">';
+                        createHtml += '<div class="title">' + art.title + '</div>';
+                        createHtml += '<div class="date">' + art.createtime + '</div>';
+                        createHtml += '<div class="desc">';
+                        createHtml += art.desc;
+                        createHtml += '</div>';
+                        createHtml += '<a href="blog_content.html?aid=' +
+                            art.aid + '" class="detail">查看全文 &gt;&gt;</a>&nbsp;&nbsp;';
+                        createHtml += '<a href="blog_edit.html?aid=' +
+                            art.aid + '" class="detail">修改 &gt;&gt;</a>&nbsp;&nbsp;';
+                        createHtml += '<a href="javascript:del(' +
+                            art.aid + ')" class="detail">删除 &gt;&gt;</a>';
+                        createHtml += '</div>';
+                    }
+                } else {
+                    createHtml = "<h2 style='margin-left: 50px;margin-top: 20px;'>暂无数据，请先添加！</h2>";
+                }
+                jQuery("#artlist").html(createHtml);
+            }
+        });
+    }
+
+    initPage();
+
+    // 删除文章的方法
+    function del(aid) {
+        if (confirm("确定删除？")) {
+            // 1.效验参数合法性
+            if (aid == "" || aid <= 0) {
+                alert("非法参数，请重试！");
+                return false;
+            }
+            // 2.调用后端执行删除
+            jQuery.ajax({
+                url: "/art/del",
+                type: "POST",
+                data: {
+                    "aid": aid
+                },
+                success: function (res) {
+                    // 3.得到后端的结果展示给用户
+                    if (res.code == 200 && res.data == 1) {
+                        // 删除成功
+                        alert("恭喜：删除成功！");
+                        location.href = location.href; // 刷新当前页面
+                    } else {
+                        alert("抱歉：操作失败！" + res.msg);
+                    }
+                }
+            });
+        }
+    }
+
+    function logout() {
+        // 1.先让用户确认是否真的退出系统
+        if (confirm("是否确认退出？")) {
+            // 2.如果点击的是“确认”，发送 ajax 请求给后端（执行注销操作）
+            jQuery.ajax({
+                url: "/user/logout",
+                type: "POST",
+                data: {},
+                success: function (res) {
+                    // 3.最后，再将后端返回的结果呈现给用户
+                    if (res.code == 200 && res.data == 1) {
+                        // 退出成功
+                        alert("退出成功！");
+                        location.href = "/login.html"; // 跳转到登录页
+                    } else {
+                        alert("抱歉：操作失败，请重试！" + res.msg);
+                    }
+                }
+            });
+        }
+    }
+</script>
+</body>
+
+</html>
